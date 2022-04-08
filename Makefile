@@ -39,9 +39,7 @@ objtree		:= .
 src		:= $(srctree)
 obj		:= $(objtree)
 
-VPATH		:= $(srctree)
-
-export srctree objtree VPATH
+export srctree objtree 
 
 version_h := include/config/version.h
 
@@ -161,13 +159,12 @@ export RCS_TAR_IGNORE := --exclude SCCS --exclude BitKeeper --exclude .svn \
 PHONY += all
 _all: all
 
-core-y		:= core/ apps/ libsys/
-drivers-y	:= drivers/ platform/
-external-y	:= external/
+core-y		:=
+drivers-y	:=
+external-y	:=
 libs-y		:=
 
 -include .config
-drivers-$(CONFIG_VIRT) += virt/
 
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
 # values of the respective MBUILD_* variables
@@ -219,6 +216,7 @@ $(clean-dirs):
 	$(Q) $(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
 
 minos: $(minos-deps) scripts/generate_allsymbols.py
+	echo $(minos-deps)
 	$(Q) echo "  LD      .tmp.minos.elf"
 	$(Q) $(LD) $(minos_LDFLAGS) -o .tmp.minos.elf $(MBUILD_MINOS_INIT) $(MBUILD_MINOS_MAIN) $(MBUILD_MINOS_LIBS)
 	$(Q) echo "  NM      .tmp.minos.symbols"
@@ -236,11 +234,13 @@ minos: $(minos-deps) scripts/generate_allsymbols.py
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
-$(sort $(minos-deps)): $(minos-dirs) ;
+$(sort $(minos-deps)): $(minos-dirs) 
+	echo $(minos-dirs) 
 
 # here goto each directory to generate built-in.o
 PHONY += $(minos-dirs)
 $(minos-dirs):
+	echo $@
 	$(Q)$(MAKE) $(build)=$@
 
 define sed-y
@@ -258,7 +258,7 @@ endef
 
 PHONY += scriptconfig iscriptconfig menuconfig guiconfig dumpvarsconfig
 
-PYTHONCMD ?= python
+PYTHONCMD ?= python3
 kpython := PYTHONPATH=$(srctree)/scripts/Kconfiglib:$$PYTHONPATH $(PYTHONCMD)
 KCONFIG ?= $(srctree)/Kconfig
 
