@@ -1,0 +1,10 @@
+# Kconfig - main configuration options for Minos
+#
+# Copyright (c) 2019 Min Le <lemin9538@gmail.com>
+#
+#
+mainmenu "AARCH64 Configuration"
+
+config ARCH
+	string
+
