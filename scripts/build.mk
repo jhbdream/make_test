@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 src := $(obj)
-	 
+
 obj-y :=
 subdir-y :=
 lib-y :=
@@ -12,7 +12,7 @@ EXTRA_CFLAGS   :=
 EXTRA_CPPFLAGS :=
 EXTRA_LDFLAGS  :=
 
-include scripts/Minos.config.mk
+include scripts/config.mk
 
 # Read auto.conf if it exists, otherwise ignore
 -include .config
@@ -56,8 +56,8 @@ dtb-y		:= $(filter %.dtb, $(real-obj-y))
 real-obj-y	:= $(filter-out %.dtb, $(real-obj-y))
 
 # remove the head-y which is link as the first.o
-real-head-y	:= $(filter $(MBUILD_MINOS_INIT), $(real-obj-y))
-real-obj-y	:= $(filter-out $(MBUILD_MINOS_INIT), $(real-obj-y))
+real-head-y	:= $(filter $(MBUILD_EEOS_INIT), $(real-obj-y))
+real-obj-y	:= $(filter-out $(MBUILD_EEOS_INIT), $(real-obj-y))
 
 OBJ_DEPS	= $(real-dep-y)
 

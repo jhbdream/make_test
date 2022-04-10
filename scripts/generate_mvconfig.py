@@ -14,11 +14,11 @@ key:[value, keep_default]
 """
 default_config = {
     'CONFIG_MAX_VM': ['64', 1],
-    'CONFIG_MINOS_RESCHED_IRQ': ['7', 1],
+    'CONFIG_EEOS_RESCHED_IRQ': ['7', 1],
     'CONFIG_MAX_SLAB_BLOCKS': ['10', 1],
     'CONFIG_PLATFORM_ADDRESS_RANGE': ['40', 1],
     'CONFIG_LOG_LEVEL': ['3', 1],
-    'CONFIG_MINOS_START_ADDRESS': ['0x0', 1],
+    'CONFIG_EEOS_START_ADDRESS': ['0x0', 1],
     'CONFIG_BOOTMEM_SIZE': ['64K', 1],
     'CONFIG_MAX_MAILBOX_NR': ['10', 1],
     'CONFIG_TASK_RUN_TIME' : ['100', 1],
@@ -94,8 +94,8 @@ if __name__ == "__main__":
         afd.write(a_str)
         afd.close()
 
-    h_str = '#ifndef __MINOS_CONFIG_H__\r\n'
-    h_str += "#define __MINOS_CONFIG_H__\r\n\r\n"
+    h_str = '#ifndef __EEOS_CONFIG_H__\r\n'
+    h_str += "#define __EEOS_CONFIG_H__\r\n\r\n"
     with open(output_h_file, 'w') as hfd:
         for item in configs:
             if len(item) != 2:
