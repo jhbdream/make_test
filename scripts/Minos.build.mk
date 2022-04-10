@@ -1,10 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 
 src := $(obj)
-
-PHONY := __build
-__build:
-
+	 
 obj-y :=
 subdir-y :=
 lib-y :=
@@ -29,6 +26,7 @@ ifndef obj
 $(warning kbuild: Minos.mk is included improperly)
 endif
 
+# obj-y 变量中 如果结尾带了 / 表示是目录
 __subdir-y	:= $(patsubst %/,%,$(filter %/, $(obj-y)))
 subdir-y	+= $(__subdir-y)
 obj-y		:= $(patsubst %/, %/built-in.o, $(obj-y))
@@ -68,7 +66,7 @@ CFLAGS		+= -MMD -MF $(@D)/.$(@F).d
 
 builtin-target 	:= $(obj)/built-in.o
 
-__build: $(subdir-y) $(builtin-target) $(lds-y) $(real-head-y) $(dtb-y)
+__build: $(subdir-y) $(builtin-target) $(lds-y) $(real-head-y)
 	@:
 
 ifdef builtin-target
@@ -99,6 +97,7 @@ endif
 	$(Q) echo "  DTC     $@"
 	$(Q) $(DTC) -q -I dts -O dtb -o $@ $<
 
+# 处理子目录中的makefile
 PHONY += $(subdir-y)
 $(subdir-y):
 	$(Q) $(MAKE) $(build)=$(obj)/$@

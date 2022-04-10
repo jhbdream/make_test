@@ -44,50 +44,6 @@ export srctree objtree
 version_h := include/config/version.h
 
 clean-targets := %clean
-no-dot-config-targets := $(clean-targets) cscope gtags TAGS tags help% $(version_h)
-no-sync-config-targets := $(no-dot-config-targets)
-
-config-targets  := 0
-mixed-targets   := 0
-dot-config      := 1
-may-sync-config := 1
-
-ifneq ($(filter $(no-dot-config-targets), $(MAKECMDGOALS)),)
-	ifeq ($(filter-out $(no-dot-config-targets), $(MAKECMDGOALS)),)
-		dot-config := 0
-	endif
-endif
-
-ifneq ($(filter $(no-sync-config-targets), $(MAKECMDGOALS)),)
-	ifeq ($(filter-out $(no-sync-config-targets), $(MAKECMDGOALS)),)
-		may-sync-config := 0
-	endif
-endif
-
-# For "make -j clean all", "make -j mrproper defconfig all", etc.
-ifneq ($(filter $(clean-targets),$(MAKECMDGOALS)),)
-        ifneq ($(filter-out $(clean-targets),$(MAKECMDGOALS)),)
-                mixed-targets := 1
-        endif
-endif
-
-ifeq ($(mixed-targets),1)
-# ===========================================================================
-# We're called with mixed targets (*config and build targets).
-# Handle them one by one.
-
-PHONY += $(MAKECMDGOALS) __build_one_by_one
-
-$(filter-out __build_one_by_one, $(MAKECMDGOALS)): __build_one_by_one
-	@:
-
-__build_one_by_one:
-	$(Q)set -e; \
-	for i in $(MAKECMDGOALS); do \
-		$(MAKE) -f $(srctree)/Makefile $$i; \
-	done
-
-else
 
 include scripts/Minos.config.mk
 
@@ -140,9 +96,9 @@ MBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 MBUILD_CPPFLAGS := -D__KERNEL__
 MBUILD_LDFLAGS := --no-undefined
 
-export ARCH SRCARCH CONFIG_SHELL HOSTCC MBUILD_HOSTCFLAGS CROSS_COMPILE AS LD CC DTC
-export CPP AR NM STRIP OBJCOPY OBJDUMP MBUILD_HOSTLDFLAGS MBUILD_HOSTLDLIBS
-export MAKE LEX YACC AWK GENKSYMS INSTALLKERNEL PERL PYTHON PYTHON2 PYTHON3 UTS_MACHINE
+export ARCH SRCARCH CROSS_COMPILE AS LD CC DTC
+export CPP AR NM STRIP OBJCOPY OBJDUMP 
+export MAKE LEX YACC AWK GENKSYMS PERL PYTHON PYTHON2 PYTHON3 UTS_MACHINE
 
 export MBUILD_CPPFLAGS NOSTDINC_FLAGS MINOSINCLUDE OBJCOPYFLAGS MBUILD_LDFLAGS
 export MBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE
@@ -160,7 +116,7 @@ PHONY += all
 _all: all
 
 core-y		:=
-drivers-y	:=
+drivers-y	:= driver/
 external-y	:=
 libs-y		:=
 
@@ -171,6 +127,7 @@ libs-y		:=
 ARCH_CPPFLAGS :=
 ARCH_AFLAGS :=
 ARCH_CFLAGS :=
+
 -include arch/$(SRCARCH)/Makefile
 
 MBUILD_IMAGE 	:= minos.bin
@@ -185,7 +142,7 @@ minos-alldirs	:= $(sort $(minos-dirs) $(patsubst %/,%,$(filter %/, \
 			$(core-) $(external-) $(drivers-) $(libs-))))
 
 minos-clean-dirs = $(minos-dirs)
-minos-cleandirs = $(minos-alldirs) dtbs/
+minos-cleandirs = $(minos-alldirs)
 
 core-y		:= $(patsubst %/, %/built-in.o, $(core-y))
 external-y	:= $(patsubst %/, %/built-in.o, $(external-y))
@@ -199,8 +156,6 @@ export MBUILD_MINOS_MAIN := $(core-y) $(libs-y2) $(drivers-y) $(external-y)
 export MBUILD_MINOS_LIBS := $(libs-y1)
 export MBUILD_LDS          := $(objtree)/arch/$(SRCARCH)/lds/minos.lds
 export LDFLAGS_minos
-# used by scripts/package/Makefile
-export MBUILD_ALLDIRS := $(sort $(filter-out arch/%,$(minos-alldirs)) arch Documentation include samples scripts tools)
 
 minos-deps := $(MBUILD_LDS) $(MBUILD_MINOS_INIT) $(MBUILD_MINOS_MAIN) $(MBUILD_MINOS_LIBS)
 
@@ -216,7 +171,6 @@ $(clean-dirs):
 	$(Q) $(MAKE) $(clean)=$(patsubst _clean_%,%,$@)
 
 minos: $(minos-deps) scripts/generate_allsymbols.py
-	echo $(minos-deps)
 	$(Q) echo "  LD      .tmp.minos.elf"
 	$(Q) $(LD) $(minos_LDFLAGS) -o .tmp.minos.elf $(MBUILD_MINOS_INIT) $(MBUILD_MINOS_MAIN) $(MBUILD_MINOS_LIBS)
 	$(Q) echo "  NM      .tmp.minos.symbols"
@@ -235,12 +189,10 @@ minos: $(minos-deps) scripts/generate_allsymbols.py
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
 $(sort $(minos-deps)): $(minos-dirs) 
-	echo $(minos-dirs) 
 
 # here goto each directory to generate built-in.o
 PHONY += $(minos-dirs)
 $(minos-dirs):
-	echo $@
 	$(Q)$(MAKE) $(build)=$@
 
 define sed-y
@@ -277,25 +229,16 @@ include/config/config.h: .config
 	$(Q) mkdir -p include/config
 	$(Q) $(kpython) $(srctree)/scripts/Kconfiglib/genconfig.py --header-path=include/config/config.h
 
-dtbs: FORCE
-	$(Q) $(MAKE) $(build)=$@
-
-mvm :
-	$(Q) echo "Build Minos userspace tools for Virtual Machine"
-	$(Q) cd tools/mvm && make BUILD=$(BUILD)
-
 clean: $(clean-dirs)
 	$(Q) echo "  CLEAN   all .o .*.d *.dtb built-in.o"
 	$(Q) echo "  CLEAN   allsymbols.o allsymbols.S linkmap.txt minos.s .tmp.minos.elf .tmp.minos.symbols minos.bin minos.elf"
 	$(Q) rm -f allsymbols.o allsymbols.S linkmap.txt minos.s .tmp.minos.elf .tmp.minos.symbols minos.bin minos.elf
-	$(Q) cd tools/mvm && make clean
 
 distclean: clean
 	$(Q) echo "  CLEAN   .config include/config"
 	$(Q) rm -rf include/config .config .config.old
 	$(Q) echo "  CLEAN   tags cscope.in.out cscope.out cscope.po.out"
 	$(Q) rm -f tags cscope.in.out cscope.out cscope.po.out
-	$(Q) cd tools/mvm && make clean
 
 scriptconfig:
 	$(Q)$(kpython) $(SCRIPT) $(Kconfig) $(if $(SCRIPT_ARG),"$(SCRIPT_ARG)")
@@ -327,8 +270,6 @@ genconfig:
 	$(Q) echo "  GEN      .config From configs/$@"
 	$(Q) mkdir -p include/config
 	$(Q) python $(srctree)/scripts/Kconfiglib/defconfig.py $(Kconfig) configs/$@
-
-endif
 
 PHONY += FORCE
 FORCE:
