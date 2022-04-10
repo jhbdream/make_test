@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
-VERSION = 0
-PATCHLEVEL = 3
-SUBLEVEL = 2
+VERSION = 1
+PATCHLEVEL = 0
+SUBLEVEL = 0
 EXTRAVERSION = -rc1
 NAME = unstable
 
@@ -78,33 +78,33 @@ PYTHON3		= python3
 CHECK		= sparse
 DTC		= dtc
 
-CHECKFLAGS     := -D__minos__ -Dminos -D__STDC__ -Dunix -D__unix__ \
-		  -Wbitwise -Wno-return-void -Wno-unknown-attribute $(CF)
-
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
 MINOSINCLUDE    := \
 		-I$(srctree)/arch/$(SRCARCH)/include \
 		-I$(objtree)/include
 
-MBUILD_AFLAGS   := -D__ASSEMBLY__
-MBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common -fshort-wchar \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security -O$(O_LEVEL) -DBUILD_HYPERVISOR \
-		   -std=gnu89 --static -nostdlib -fno-builtin -g $(MINOSINCLUDE)
-MBUILD_CPPFLAGS := -D__KERNEL__
+CSTD_FLAG := -std=gnu11
+MBUILD_DEFINE := -D__KERNEL__
+NOSTDINC_FLAGS += -nostdinc 
+
+MBUILD_CFLAGS   := 	-Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+		   			-fno-strict-aliasing -fno-common -fshort-wchar \
+		   			-Werror-implicit-function-declaration \
+		   			-Wno-format-security -O$(O_LEVEL) \
+		   			$(CSTD_FLAG) --static -nostdlib -fno-builtin	\
+					-g $(MINOSINCLUDE) $(MBUILD_DEFINE) $(NOSTDINC_FLAGS)
+
+MBUILD_AFLAGS   := -D__ASSEMBLY__ $(MBUILD_CFLAGS)
 MBUILD_LDFLAGS := --no-undefined
 
 export ARCH SRCARCH CROSS_COMPILE AS LD CC DTC
 export CPP AR NM STRIP OBJCOPY OBJDUMP 
-export MAKE LEX YACC AWK GENKSYMS PERL PYTHON PYTHON2 PYTHON3 UTS_MACHINE
+export MAKE LEX YACC AWK GENKSYMS PERL PYTHON PYTHON2 PYTHON3 
 
-export MBUILD_CPPFLAGS NOSTDINC_FLAGS MINOSINCLUDE OBJCOPYFLAGS MBUILD_LDFLAGS
-export MBUILD_CFLAGS CFLAGS_KERNEL CFLAGS_MODULE
-export CFLAGS_KASAN CFLAGS_KASAN_NOSANITIZE CFLAGS_UBSAN
-export MBUILD_AFLAGS AFLAGS_KERNEL AFLAGS_MODULE
-export MBUILD_AFLAGS_KERNEL MBUILD_CFLAGS_KERNEL
+export NOSTDINC_FLAGS MINOSINCLUDE OBJCOPYFLAGS MBUILD_LDFLAGS
+export MBUILD_CFLAGS 
+export MBUILD_AFLAGS 
 
 export RCS_FIND_IGNORE := \( -name SCCS -o -name BitKeeper -o -name .svn -o    \
 			  -name CVS -o -name .pc -o -name .hg -o -name .git \) \
@@ -124,14 +124,14 @@ libs-y		:=
 
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
 # values of the respective MBUILD_* variables
-ARCH_CPPFLAGS :=
 ARCH_AFLAGS :=
 ARCH_CFLAGS :=
+export ARCH_CFLAGS ARCH_AFLAGS
 
 -include arch/$(SRCARCH)/Makefile
 
-MBUILD_IMAGE 	:= minos.bin
-MBUILD_IMAGE_ELF := minos.elf
+MBUILD_IMAGE 	:= ee.bin
+MBUILD_IMAGE_ELF := ee.elf
 MBUILD_IMAGE_SYMBOLS := allsymbols.o
 
 all: include/config/config.h $(version_h) minos

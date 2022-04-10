@@ -61,8 +61,10 @@ real-obj-y	:= $(filter-out $(MBUILD_MINOS_INIT), $(real-obj-y))
 
 OBJ_DEPS	= $(real-dep-y)
 
-CFLAGS		= $(MBUILD_CFLAGS)
+CFLAGS		= $(MBUILD_CFLAGS) $(ARCH_CFLAGS) $(EXTRA_CFLAGS)
 CFLAGS		+= -MMD -MF $(@D)/.$(@F).d
+
+AFLAGS 		= $(MBUILD_AFLAGS) $(ARCH_AFLAGS) $(EXTRA_AFLAGS)
 
 builtin-target 	:= $(obj)/built-in.o
 
@@ -87,7 +89,7 @@ endif
 
 %.o: %.S $(obj)/Makefile $(srctree)/Makefile
 	$(Q) echo "  CC      $@"
-	$(Q) $(CC) $(CFLAGS) -c $< -o $@
+	$(Q) $(CC) $(AFLAGS) -c $< -o $@
 
 %.lds: %.lds.S $(obj)/Makefile $(srctree)/Makefile
 	$(Q) echo "  CC      $@"
